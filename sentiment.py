@@ -1,48 +1,20 @@
+
+#%%
 # -*- coding: utf-8 -*-
 """
 Created on Thu Aug 27 08:31:54 2020
 
-@author: User
+@author: Ana-Maria Marcu
 
 References: https://www.geeksforgeeks.org/twitter-sentiment-analysis-using-python/
 
 """
+import pandas as pd
 import re
 import tweepy
 from tweepy import OAuthHandler
 from textblob import TextBlob  
-import pandas as pd
-import sklearn as skl
-from sklearn.naive_bayes import MultinomialNB
 from nltk.tokenize import word_tokenize
-from string import punctuation
-import nltk 
-from sklearn.feature_extraction.text import CountVectorizer
-from nltk.tokenize import RegexpTokenizer
-
-#dataset = pd.read_excel(r'C:\Users\User\Desktop\Ana-Maria\University\Machine Learning\Sentiment Analysis\2477_4140_bundle_archive\training.1600000.processed.xlsx', usecols = 'A,F', nrows = 100);
-
-X = pd.DataFrame(dataset.loc[:,'text'])
-y = pd.DataFrame(dataset.loc[:,'label'])
-
-features = X.values
-labels = y.values
-
-api = TwitterClient()
-
-processed_features = []
-for sentence in range(0, len(features)):
-    processed_feature = api.clean_tweet(str(features[sentence]))  
-    processed_feature = word_tokenize(processed_feature)     
-    processed_features.append(processed_feature)
-
-print(processed_features)
-
-#X = pd.DataFrame(['happy hour', 'why are you sad', 'blob is good $#@', 'no', 'yes', 'hakuna matata', 'nestle', 'tree', 'boob', 'tomorrow', 'car manufacturer','flower is beauty','@georgia baby boomers','turm of sheeps!','camera man'])
-#y = pd.DataFrame([1,0,1,0,1,1,0,1,1,1,0,1,1,1,0])
-
-X_train, X_test, y_train, y_test = skl.model_selection.train_test_split(X, y, test_size=0.2, random_state=1);
-X_train, X_val, y_train, y_val = skl.model_selection.train_test_split(X_train, y_train, test_size = 0.25, random_state=1)
 
 class TwitterClient(object): 
     ''' 
@@ -53,10 +25,10 @@ class TwitterClient(object):
         Class constructor or initialization method. 
         '''
         # keys and tokens from the Twitter Dev Console 
-        consumer_key = 'XXXXXXXXXXXXXXXXXXXX';
-        consumer_secret = 'XXXXXXXXXXXXXXXXXXXXXX';
-        access_token = 'XXXXXXXXXXXXXXXXXXXX';
-        access_token_secret = 'XXXXXXXXXXXXXXXXXXXXXXXXX';
+        consumer_key = 'XXXXXXXXXXXXXXXXXXXX'
+        consumer_secret = 'XXXXXXXXXXXXXXXXXXXXXX'
+        access_token = 'XXXXXXXXXXXXXXXXXXXX'
+        access_token_secret = 'XXXXXXXXXXXXXXXXXXXXXXXXX'
   
         # attempt authentication 
         try: 
@@ -150,46 +122,44 @@ class TwitterClient(object):
             # return parsed tweets 
             return tweets 
   
-        except tweepy.TweepError as e: 
+        except: 
             # print error (if any) 
-            print("Error : " + str(e)) 
-            
-
-def CleanData(data):    
-    return data
-            
-def NaiveBayesTrain(tweet):
-    tweet = word_tokenize(tweet); 
-    return tweet
+            print("Error: tweet fetching failed. Check API credentials.")
+            print("Note: to run this code from GitHub you will need your valid API credentails.")            
 
 def main(): 
     # creating object of TwitterClient Class 
     api = TwitterClient()
     # calling function to get tweets 
     tweets = api.get_tweets(query = 'coronavirus', count = 100) 
-    
+
+    try:
     # picking positive tweets from tweets 
-    ptweets = [tweet for tweet in tweets if tweet['sentiment'] == 'positive'] 
-    # percentage of positive tweets 
-    print("Positive tweets percentage: {} %".format(100*len(ptweets)/len(tweets))) 
-    # picking negative tweets from tweets 
-    ntweets = [tweet for tweet in tweets if tweet['sentiment'] == 'negative'] 
-    # percentage of negative tweets 
-    print("Negative tweets percentage: {} %".format(100*len(ntweets)/len(tweets))) 
-    # percentage of neutral tweets 
-    print("Neutral tweets percentage: {} %".format(100*(len(tweets)-(len( ntweets )+len( ptweets)))/len(tweets))) 
+        ptweets = [tweet for tweet in tweets if tweet['sentiment'] == 'positive'] 
+        # percentage of positive tweets 
+        print("Positive tweets percentage: {} %".format(100*len(ptweets)/len(tweets))) 
+        # picking negative tweets from tweets 
+        ntweets = [tweet for tweet in tweets if tweet['sentiment'] == 'negative'] 
+        # percentage of negative tweets 
+        print("Negative tweets percentage: {} %".format(100*len(ntweets)/len(tweets))) 
+        # percentage of neutral tweets 
+        print("Neutral tweets percentage: {} %".format(100*(len(tweets)-(len( ntweets )+len( ptweets)))/len(tweets))) 
   
-    # printing first 5 positive tweets 
-    print("\n\nPositive tweets:") 
-    for tweet in ptweets[:10]: 
-        print(api.clean_tweet(tweet['text'])) 
+        # printing first 5 positive tweets 
+        print("\n\nPositive tweets:") 
+        for tweet in ptweets[:10]: 
+            print(api.clean_tweet(tweet['text'])) 
   
-    # printing first 5 negative tweets 
-    print("\n\nNegative tweets:") 
-    for tweet in ntweets[:10]: 
-        print(api.clean_tweet(tweet['text'])) 
+        # printing first 5 negative tweets 
+        print("\n\nNegative tweets:") 
+        for tweet in ntweets[:10]: 
+            print(api.clean_tweet(tweet['text']))
+    except:
+        if(tweets==None):
+            print('No tweets fetched.')
+        else:
+            print('Error: sentiment calculation unsuccessful.') 
   
-#if __name__ == "__main__": 
-#    # calling main function 
-#    main()
-  
+if __name__ == "__main__": 
+    # calling main function 
+    main()
