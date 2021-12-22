@@ -15,6 +15,8 @@ import tweepy
 from tweepy import OAuthHandler
 from textblob import TextBlob  
 from nltk.tokenize import word_tokenize
+import os
+from dotenv import load_dotenv
 
 class TwitterClient(object): 
     ''' 
@@ -24,20 +26,23 @@ class TwitterClient(object):
         ''' 
         Class constructor or initialization method. 
         '''
+        # load environment variables
+        load_dotenv()
         # keys and tokens from the Twitter Dev Console 
-        consumer_key = 'XXXXXXXXXXXXXXXXXXXX'
-        consumer_secret = 'XXXXXXXXXXXXXXXXXXXXXX'
-        access_token = 'XXXXXXXXXXXXXXXXXXXX'
-        access_token_secret = 'XXXXXXXXXXXXXXXXXXXXXXXXX'
-  
+        consumer_key = os.getenv('CONSUMER_KEY')
+        consumer_secret = os.getenv('CONSUMER_SECRET')
+        access_token = os.getenv('ACCESS_TOKEN')
+        access_token_secret = os.getenv('ACCESS_TOKEN_SECRET')
+        bearer_token = os.getenv('BEARER_TOKEN')
+
         # attempt authentication 
         try: 
-            # create OAuthHandler object 
+            # create OAuthHandler object
             self.auth = OAuthHandler(consumer_key, consumer_secret) 
             # set access token and secret 
             self.auth.set_access_token(access_token, access_token_secret) 
             # create tweepy API object to fetch tweets 
-            self.api = tweepy.API(self.auth) 
+            self.api = tweepy.Client(bearer_token = bearer_token, consumer_key=consumer_key, consumer_secret=consumer_secret, access_token=access_token, access_token_secret=access_token_secret)
         except: 
             print("Error: Authentication Failed") 
   
@@ -97,41 +102,40 @@ class TwitterClient(object):
         # empty list to store parsed tweets 
         tweets = [] 
   
-        try: 
+        #try: 
+        print('Trying tweets fetching')
             # call twitter api to fetch tweets 
-            fetched_tweets = self.api.search(q = query + '-filter:retweets', count = count) 
-  
-            # parsing tweets one by one 
-            for tweet in fetched_tweets: 
-                # empty dictionary to store required params of a tweet 
-                parsed_tweet = {} 
+        fetched_tweets = self.api.search_recent_tweets(query=query, max_results=count).data
+        # parsing tweets one by one 
+        for tweet in fetched_tweets:
+            # empty dictionary to store required params of a tweet 
+            parsed_tweet = {} 
   
                 # saving text of tweet 
-                parsed_tweet['text'] = tweet.text 
+            parsed_tweet['text'] = tweet.text 
                 # saving sentiment of tweet 
-                parsed_tweet['sentiment'] = self.get_tweet_sentiment(tweet.text) 
+            parsed_tweet['sentiment'] = self.get_tweet_sentiment(tweet.text) 
   
-                # appending parsed tweet to tweets list 
-                if tweet.retweet_count > 0: 
-                    # if tweet has retweets, ensure that it is appended only once 
-                    if parsed_tweet not in tweets: 
-                        tweets.append(parsed_tweet) 
-                else: 
-                    tweets.append(parsed_tweet) 
+            # appending parsed tweet to tweets list 
+            if parsed_tweet not in tweets: 
+                tweets.append(parsed_tweet) 
+            else: 
+                tweets.append(parsed_tweet) 
   
             # return parsed tweets 
-            return tweets 
+        return tweets 
   
-        except: 
+        #except: 
             # print error (if any) 
-            print("Error: tweet fetching failed. Check API credentials.")
-            print("Note: to run this code from GitHub you will need your valid API credentails.")            
+        #    print("Error: tweet fetching failed.")
+        #    print("Note: to run this code from GitHub you will need your valid API credentails.")            
 
 def main(): 
     # creating object of TwitterClient Class 
     api = TwitterClient()
+
     # calling function to get tweets 
-    tweets = api.get_tweets(query = 'coronavirus', count = 100) 
+    tweets = api.get_tweets(query = 'coronavirus', count = 10) 
 
     try:
     # picking positive tweets from tweets 
@@ -163,3 +167,4 @@ def main():
 if __name__ == "__main__": 
     # calling main function 
     main()
+# %%
