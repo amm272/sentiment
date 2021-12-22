@@ -17,6 +17,7 @@ from textblob import TextBlob
 from nltk.tokenize import word_tokenize
 import os
 from dotenv import load_dotenv
+from textblob.sentiments import NaiveBayesAnalyzer
 
 class TwitterClient(object): 
     ''' 
@@ -82,17 +83,17 @@ class TwitterClient(object):
     def get_tweet_sentiment(self, tweet): 
         ''' 
         Utility function to classify sentiment of passed tweet 
-        using textblob's sentiment method 
+        using a Naive Bayes classifier trained on a movie corpora method 
         '''
         # create TextBlob object of passed tweet text 
-        analysis = TextBlob(self.clean_tweet(tweet))
+        analysis = TextBlob(self.clean_tweet(tweet), analyzer = NaiveBayesAnalyzer())
         
         # set sentiment
-        if analysis.sentiment.polarity > 0: 
-            return 'positive'
-        elif analysis.sentiment.polarity == 0: 
+        if analysis.sentiment[1]==0.5: 
             return 'neutral'
-        elif analysis.sentiment.polarity < 0: 
+        elif analysis.sentiment[0] == 'pos': 
+            return 'positive'
+        elif analysis.sentiment[0] == 'neg': 
             return 'negative'
   
     def get_tweets(self, query, count = 10): 
@@ -111,11 +112,10 @@ class TwitterClient(object):
             # empty dictionary to store required params of a tweet 
             parsed_tweet = {} 
   
-                # saving text of tweet 
+            # saving text of tweet 
             parsed_tweet['text'] = tweet.text 
-                # saving sentiment of tweet 
-            parsed_tweet['sentiment'] = self.get_tweet_sentiment(tweet.text) 
-  
+            # saving sentiment of tweet 
+            parsed_tweet['sentiment'] = self.get_tweet_sentiment(tweet.text)
             # appending parsed tweet to tweets list 
             if parsed_tweet not in tweets: 
                 tweets.append(parsed_tweet) 
@@ -151,12 +151,12 @@ def main():
   
         # printing first 5 positive tweets 
         print("\n\nPositive tweets:") 
-        for tweet in ptweets[:10]: 
+        for tweet in ptweets[:5]: 
             print(api.clean_tweet(tweet['text'])) 
   
         # printing first 5 negative tweets 
         print("\n\nNegative tweets:") 
-        for tweet in ntweets[:10]: 
+        for tweet in ntweets[:5]: 
             print(api.clean_tweet(tweet['text']))
     except:
         if(tweets==None):
